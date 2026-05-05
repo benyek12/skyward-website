@@ -2,10 +2,9 @@ const https = require('https');
 
 exports.handler = async (event) => {
   const { id } = event.queryStringParameters;
-  const url = `https://corsproxy.io/?https://games.roblox.com/v1/games?universeIds=${id}`;
 
   return new Promise((resolve) => {
-    https.get(url, (res) => {
+    https.get(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://games.roblox.com/v1/games?universeIds=${id}`)}`, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
