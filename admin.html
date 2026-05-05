@@ -163,47 +163,23 @@
 </head>
 <body>
 
+
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">⬢ SKYWARD</div>
-    <div class="auth-subtitle">Admin Panel — Masuk atau daftar akun</div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">LOGIN</button>
-      <button class="auth-tab" onclick="switchTab('register')">DAFTAR</button>
-    </div>
+    <div class="auth-subtitle">Admin Panel — Khusus Admin</div>
 
-    <!-- LOGIN -->
-    <div id="tab-login">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="login-email" placeholder="email@kamu.com"/>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="••••••••"/>
-      </div>
-      <button class="btn-auth" onclick="handleLogin()">MASUK</button>
-      <div class="auth-msg" id="login-msg"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="email@kamu.com"/>
     </div>
-
-    <!-- REGISTER -->
-    <div id="tab-register" style="display:none">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="reg-username" placeholder="username kamu"/>
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="reg-email" placeholder="email@kamu.com"/>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="reg-password" placeholder="min 6 karakter"/>
-      </div>
-      <button class="btn-auth" onclick="handleRegister()">DAFTAR</button>
-      <div class="auth-msg" id="reg-msg"></div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••"/>
     </div>
+    <button class="btn-auth" onclick="handleLogin()">MASUK</button>
+    <div class="auth-msg" id="login-msg"></div>
   </div>
 </div>
 
@@ -259,26 +235,27 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqemFrcmV5dnNsbnR6aGJ1aGt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NTQxODEsImV4cCI6MjA5MzUzMDE4MX0.8fOOaMDUuaGDqE8SRhwq9Pcw2qYQPca2cl_mNMHMClM';
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const OWNER_EMAIL = 'benyeksetia@gmail.com';
+  // Daftar email yang boleh login
+  const ALLOWED_EMAILS = ['benyeksetia@gmail.com'];
+
   let currentUser = null;
   let currentProfile = null;
-
-  window.switchTab = (tab) => {
-    document.querySelectorAll('.auth-tab').forEach((t, i) => {
-      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
-    });
-    document.getElementById('tab-login').style.display = tab === 'login' ? '' : 'none';
-    document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
-  };
 
   window.handleLogin = async () => {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const msg = document.getElementById('login-msg');
-    const btn = document.querySelector('#tab-login .btn-auth');
+    const btn = document.querySelector('.btn-auth');
 
     if (!email || !password) {
       msg.textContent = 'Email dan password wajib diisi!';
+      msg.className = 'auth-msg error';
+      return;
+    }
+
+    // Cek apakah email diizinkan
+    if (!ALLOWED_EMAILS.includes(email)) {
+      msg.textContent = 'Akses ditolak! Kamu bukan admin.';
       msg.className = 'auth-msg error';
       return;
     }
@@ -297,92 +274,39 @@
       return;
     }
 
-    // Langsung tampilkan dashboard
     await showDashboard(data.user);
-  };
-
-  window.handleRegister = async () => {
-    const username = document.getElementById('reg-username').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
-    const msg = document.getElementById('reg-msg');
-    const btn = document.querySelector('#tab-register .btn-auth');
-
-    if (!username) { msg.textContent = 'Username wajib diisi!'; msg.className = 'auth-msg error'; return; }
-    if (!email) { msg.textContent = 'Email wajib diisi!'; msg.className = 'auth-msg error'; return; }
-    if (password.length < 6) { msg.textContent = 'Password minimal 6 karakter!'; msg.className = 'auth-msg error'; return; }
-
-    btn.disabled = true;
-    btn.textContent = 'MENDAFTAR...';
-    msg.textContent = '';
-
-    const { data, error } = await sb.auth.signUp({ email, password });
-
-    if (error) {
-      msg.textContent = error.message;
-      msg.className = 'auth-msg error';
-      btn.disabled = false;
-      btn.textContent = 'DAFTAR';
-      return;
-    }
-
-    const user = data?.user;
-    if (!user) {
-      msg.textContent = 'Gagal membuat akun, coba lagi!';
-      msg.className = 'auth-msg error';
-      btn.disabled = false;
-      btn.textContent = 'DAFTAR';
-      return;
-    }
-
-    // Insert profile
-    const isOwner = email === OWNER_EMAIL;
-    const { error: profileError } = await sb.from('profiles').insert({
-      id: user.id,
-      username,
-      role: isOwner ? 'owner' : 'user',
-      approved: isOwner
-    });
-
-    if (profileError) {
-      console.error('Profile error:', profileError);
-      msg.textContent = 'Gagal simpan profil: ' + profileError.message;
-      msg.className = 'auth-msg error';
-      btn.disabled = false;
-      btn.textContent = 'DAFTAR';
-      return;
-    }
-
-    msg.textContent = isOwner ? 'Selamat datang, Owner!' : 'Berhasil daftar!';
-    msg.className = 'auth-msg success';
-
-    // Langsung tampilkan dashboard
-    await showDashboard(user);
   };
 
   async function showDashboard(user) {
     currentUser = user;
 
-    // Ambil profile
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    // Ambil atau buat profile otomatis
+    let { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+
+    if (!profile) {
+      await sb.from('profiles').insert({
+        id: user.id,
+        username: user.email.split('@')[0],
+        role: 'owner',
+        approved: true
+      });
+      const { data: newProfile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      profile = newProfile;
+    }
+
     currentProfile = profile;
 
-    // Sembunyikan auth, tampilkan dashboard
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = '';
 
-    // Set topbar
-    const role = profile?.role || 'user';
+    const role = profile?.role || 'owner';
     document.getElementById('topbar-username').textContent = '@' + (profile?.username || user.email.split('@')[0]);
     const badge = document.getElementById('topbar-badge');
     badge.textContent = role.toUpperCase();
     badge.className = `badge badge-${role}`;
 
-    // Show/hide sections
-    const isAdminOrOwner = role === 'admin' || role === 'owner';
-    const isPending = role === 'user' && !profile?.approved;
-    document.getElementById('pending-notice').style.display = isPending ? '' : 'none';
-    document.getElementById('post-section').style.display = isAdminOrOwner ? '' : 'none';
+    document.getElementById('pending-notice').style.display = 'none';
+    document.getElementById('post-section').style.display = '';
     document.getElementById('users-section').style.display = role === 'owner' ? '' : 'none';
 
     loadPosts();
@@ -426,7 +350,7 @@
     const { data, error } = await sb.from('posts').select('*, profiles(username)').order('created_at', { ascending: false });
     const el = document.getElementById('posts-list');
     if (error || !data?.length) { el.innerHTML = '<div class="empty-state">Belum ada pengumuman.</div>'; return; }
-    const isAdminOrOwner = currentProfile?.role === 'admin' || currentProfile?.role === 'owner';
+    const isAdminOrOwner = true;
     el.innerHTML = data.map(p => `
       <div class="post-item">
         <div>
@@ -434,7 +358,7 @@
           <div class="post-item-content">${p.content}</div>
           <div class="post-item-meta">oleh @${p.profiles?.username || '?'} · ${new Date(p.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</div>
         </div>
-        ${isAdminOrOwner ? `<button class="btn-delete" onclick="handleDeletePost(${p.id})">HAPUS</button>` : ''}
+        <button class="btn-delete" onclick="handleDeletePost(${p.id})">HAPUS</button>
       </div>
     `).join('');
   }
@@ -457,7 +381,7 @@
     `).join('');
   }
 
-  // Cek kalau sudah login sebelumnya
+  // Cek session yang sudah ada
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user && !currentUser) {
       await showDashboard(session.user);
