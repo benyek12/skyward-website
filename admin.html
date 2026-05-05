@@ -394,7 +394,8 @@
       currentUser = session.user;
 
       // Get profile
-      const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+      const { data: profile, error: profileError } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+console.log('Profile:', profile, profileError);
       currentProfile = profile;
 
       // Show dashboard
