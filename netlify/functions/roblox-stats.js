@@ -4,7 +4,7 @@ exports.handler = async (event) => {
   const { id } = event.queryStringParameters;
 
   return new Promise((resolve) => {
-    https.get(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://games.roblox.com/v1/games?universeIds=${id}`)}`, (res) => {
+    https.get(`https://games.roblox.com/v1/games?universeIds=${id}`, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
