@@ -122,13 +122,15 @@ async function fetchRobloxStats() {
     try {
       const res  = await fetch(`/.netlify/functions/roblox-stats?id=${game.universeId}`);
       const json = await res.json();
-      const data = json.data[0];
+      const data = json?.data?.[0];
 
-      const elVisits = document.querySelector(game.elVisits);
-      const elFavs   = document.querySelector(game.elFavs);
+const elVisits = document.querySelector(game.elVisits);
+const elFavs   = document.querySelector(game.elFavs);
 
-      if (elVisits) elVisits.textContent = (data.visits || 0).toLocaleString('id-ID');
-      if (elFavs)   elFavs.textContent   = (data.favoritedCount || 0).toLocaleString('id-ID');
+if (!data) { console.warn('No data for', game.universeId, json); return; }
+
+if (elVisits) elVisits.textContent = (data.visits || 0).toLocaleString('id-ID');
+if (elFavs)   elFavs.textContent   = (data.favoritedCount || 0).toLocaleString('id-ID');
 
     } catch (err) {
       console.warn('Gagal fetch:', err);
