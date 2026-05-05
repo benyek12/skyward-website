@@ -260,20 +260,9 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const OWNER_EMAIL = 'benyeksetia@gmail.com';
-
   let currentUser = null;
   let currentProfile = null;
 
-  // ── HELPER: set button loading state ─────────────
-  function setLoading(btnEl, msgEl, loading, loadingText, defaultText) {
-    btnEl.disabled = loading;
-    btnEl.textContent = loading ? loadingText : defaultText;
-    if (!loading) return;
-    msgEl.textContent = '';
-    msgEl.className = 'auth-msg';
-  }
-
-  // ── TAB SWITCH ───────────────────────────────────
   window.switchTab = (tab) => {
     document.querySelectorAll('.auth-tab').forEach((t, i) => {
       t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
@@ -282,27 +271,6 @@
     document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
   };
 
-  // ── HELPER: buat/ambil profile ───────────────────
-  async function ensureProfile(user) {
-    // Coba ambil dulu
-    const { data: existing } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    if (existing) return existing;
-
-    // Kalau belum ada, buat otomatis (fallback)
-    const isOwner = user.email === OWNER_EMAIL;
-    const username = user.email.split('@')[0];
-    const { data: created, error } = await sb.from('profiles').upsert({
-      id: user.id,
-      username,
-      role: isOwner ? 'owner' : 'user',
-      approved: isOwner
-    }, { onConflict: 'id' }).select().maybeSingle();
-
-    if (error) console.error('Profile upsert error:', error);
-    return created;
-  }
-
-  // ── LOGIN ────────────────────────────────────────
   window.handleLogin = async () => {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
@@ -315,26 +283,24 @@
       return;
     }
 
-    setLoading(btn, msg, true, 'MEMPROSES...', 'MASUK');
+    btn.disabled = true;
+    btn.textContent = 'MEMPROSES...';
+    msg.textContent = '';
 
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
     if (error) {
-      msg.textContent = error.message === 'Invalid login credentials'
-        ? 'Email atau password salah!'
-        : error.message;
+      msg.textContent = 'Email atau password salah!';
       msg.className = 'auth-msg error';
       btn.disabled = false;
       btn.textContent = 'MASUK';
       return;
     }
 
-    msg.textContent = 'Berhasil login!';
-    msg.className = 'auth-msg success';
-    // onAuthStateChange akan handle pindah ke dashboard
+    // Langsung tampilkan dashboard
+    await showDashboard(data.user);
   };
 
-  // ── REGISTER ─────────────────────────────────────
   window.handleRegister = async () => {
     const username = document.getElementById('reg-username').value.trim();
     const email = document.getElementById('reg-email').value.trim();
@@ -346,7 +312,9 @@
     if (!email) { msg.textContent = 'Email wajib diisi!'; msg.className = 'auth-msg error'; return; }
     if (password.length < 6) { msg.textContent = 'Password minimal 6 karakter!'; msg.className = 'auth-msg error'; return; }
 
-    setLoading(btn, msg, true, 'MENDAFTAR...', 'DAFTAR');
+    btn.disabled = true;
+    btn.textContent = 'MENDAFTAR...';
+    msg.textContent = '';
 
     const { data, error } = await sb.auth.signUp({ email, password });
 
@@ -358,67 +326,94 @@
       return;
     }
 
-    // Pastikan user object ada
     const user = data?.user;
     if (!user) {
-      // Email confirmation aktif — beritahu user
-      msg.textContent = 'Cek email kamu untuk konfirmasi akun terlebih dahulu!';
-      msg.className = 'auth-msg success';
-      btn.disabled = false;
-      btn.textContent = 'DAFTAR';
-      return;
-    }
-
-    // Insert profile dengan upsert (aman dari duplikat)
-    const isOwner = email === OWNER_EMAIL;
-    const { error: profileError } = await sb.from('profiles').upsert({
-      id: user.id,
-      username,
-      role: isOwner ? 'owner' : 'user',
-      approved: isOwner
-    }, { onConflict: 'id' });
-
-    if (profileError) {
-      console.error('Profile error:', profileError);
-      msg.textContent = 'Daftar berhasil tapi gagal simpan profil: ' + profileError.message;
+      msg.textContent = 'Gagal membuat akun, coba lagi!';
       msg.className = 'auth-msg error';
       btn.disabled = false;
       btn.textContent = 'DAFTAR';
       return;
     }
 
-    msg.textContent = isOwner ? 'Selamat datang, Owner!' : 'Berhasil daftar! Tunggu persetujuan owner.';
+    // Insert profile
+    const isOwner = email === OWNER_EMAIL;
+    const { error: profileError } = await sb.from('profiles').insert({
+      id: user.id,
+      username,
+      role: isOwner ? 'owner' : 'user',
+      approved: isOwner
+    });
+
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      msg.textContent = 'Gagal simpan profil: ' + profileError.message;
+      msg.className = 'auth-msg error';
+      btn.disabled = false;
+      btn.textContent = 'DAFTAR';
+      return;
+    }
+
+    msg.textContent = isOwner ? 'Selamat datang, Owner!' : 'Berhasil daftar!';
     msg.className = 'auth-msg success';
-    // onAuthStateChange akan otomatis handle redirect ke dashboard
+
+    // Langsung tampilkan dashboard
+    await showDashboard(user);
   };
 
-  // ── LOGOUT ───────────────────────────────────────
+  async function showDashboard(user) {
+    currentUser = user;
+
+    // Ambil profile
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    currentProfile = profile;
+
+    // Sembunyikan auth, tampilkan dashboard
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = '';
+
+    // Set topbar
+    const role = profile?.role || 'user';
+    document.getElementById('topbar-username').textContent = '@' + (profile?.username || user.email.split('@')[0]);
+    const badge = document.getElementById('topbar-badge');
+    badge.textContent = role.toUpperCase();
+    badge.className = `badge badge-${role}`;
+
+    // Show/hide sections
+    const isAdminOrOwner = role === 'admin' || role === 'owner';
+    const isPending = role === 'user' && !profile?.approved;
+    document.getElementById('pending-notice').style.display = isPending ? '' : 'none';
+    document.getElementById('post-section').style.display = isAdminOrOwner ? '' : 'none';
+    document.getElementById('users-section').style.display = role === 'owner' ? '' : 'none';
+
+    loadPosts();
+    if (role === 'owner') loadUsers();
+  }
+
   window.handleLogout = async () => {
     await sb.auth.signOut();
+    currentUser = null;
+    currentProfile = null;
+    document.getElementById('auth-screen').style.display = '';
+    document.getElementById('dashboard').style.display = 'none';
   };
 
-  // ── POST ─────────────────────────────────────────
   window.handlePost = async () => {
     const title = document.getElementById('post-title').value.trim();
     const content = document.getElementById('post-content').value.trim();
     if (!title || !content) return alert('Judul dan isi wajib diisi!');
-
     const { error } = await sb.from('posts').insert({ title, content, author_id: currentUser.id });
     if (error) { alert('Gagal post: ' + error.message); return; }
-
     document.getElementById('post-title').value = '';
     document.getElementById('post-content').value = '';
     loadPosts();
   };
 
-  // ── DELETE POST ──────────────────────────────────
   window.handleDeletePost = async (id) => {
     if (!confirm('Hapus pengumuman ini?')) return;
     await sb.from('posts').delete().eq('id', id);
     loadPosts();
   };
 
-  // ── APPROVE USER ─────────────────────────────────
   window.handleApprove = async (id, approve) => {
     await sb.from('profiles').update({
       approved: approve,
@@ -427,12 +422,10 @@
     loadUsers();
   };
 
-  // ── LOAD POSTS ───────────────────────────────────
   async function loadPosts() {
     const { data, error } = await sb.from('posts').select('*, profiles(username)').order('created_at', { ascending: false });
     const el = document.getElementById('posts-list');
     if (error || !data?.length) { el.innerHTML = '<div class="empty-state">Belum ada pengumuman.</div>'; return; }
-
     const isAdminOrOwner = currentProfile?.role === 'admin' || currentProfile?.role === 'owner';
     el.innerHTML = data.map(p => `
       <div class="post-item">
@@ -446,12 +439,10 @@
     `).join('');
   }
 
-  // ── LOAD USERS ───────────────────────────────────
   async function loadUsers() {
     const { data } = await sb.from('profiles').select('*').neq('role', 'owner').order('created_at');
     const el = document.getElementById('users-list');
     if (!data?.length) { el.innerHTML = '<div class="empty-state">Belum ada user terdaftar.</div>'; return; }
-
     el.innerHTML = data.map(u => `
       <div class="user-item">
         <div class="user-info">
@@ -466,38 +457,12 @@
     `).join('');
   }
 
-  // ── AUTH STATE ───────────────────────────────────
+  // Cek kalau sudah login sebelumnya
   sb.auth.onAuthStateChange(async (event, session) => {
-    if (session?.user) {
-      currentUser = session.user;
-
-      // Ambil atau buat profile
-      const profile = await ensureProfile(currentUser);
-      currentProfile = profile;
-
-      // Tampilkan dashboard
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display = '';
-
-      // Set topbar
-      document.getElementById('topbar-username').textContent = '@' + (profile?.username || currentUser.email.split('@')[0]);
-      const badge = document.getElementById('topbar-badge');
-      const role = profile?.role || 'user';
-      badge.textContent = role.toUpperCase();
-      badge.className = `badge badge-${role}`;
-
-      // Tampilkan/sembunyikan section
-      const isAdminOrOwner = role === 'admin' || role === 'owner';
-      const isPending = role === 'user' && !profile?.approved;
-
-      document.getElementById('pending-notice').style.display = isPending ? '' : 'none';
-      document.getElementById('post-section').style.display = isAdminOrOwner ? '' : 'none';
-      document.getElementById('users-section').style.display = role === 'owner' ? '' : 'none';
-
-      loadPosts();
-      if (role === 'owner') loadUsers();
-
-    } else {
+    if (event === 'SIGNED_IN' && session?.user && !currentUser) {
+      await showDashboard(session.user);
+    }
+    if (event === 'SIGNED_OUT') {
       currentUser = null;
       currentProfile = null;
       document.getElementById('auth-screen').style.display = '';
