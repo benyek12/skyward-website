@@ -140,3 +140,46 @@ async function fetchRobloxStats() {
 
 fetchRobloxStats();
 setInterval(fetchRobloxStats, 60 * 1000);
+
+/* ── TAMBAHKAN INI DI BAGIAN BAWAH main.js ──────── */
+
+/* ── LOAD ANNOUNCEMENTS FROM SUPABASE ──────────── */
+(async () => {
+  try {
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(
+      'https://fjzakreyvslntzhbuhkv.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqemFrcmV5dnNsbnR6aGJ1aGt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NTQxODEsImV4cCI6MjA5MzUzMDE4MX0.8fOOaMDUuaGDqE8SRhwq9Pcw2qYQPca2cl_mNMHMClM'
+    );
+
+    const { data } = await sb.from('posts')
+      .select('*, profiles(username)')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const el = document.getElementById('announcements-list');
+    if (!el) return;
+
+    if (!data?.length) {
+      el.innerHTML = '<div style="color:#888;text-align:center;padding:40px;">Belum ada pengumuman.</div>';
+      return;
+    }
+
+    el.innerHTML = data.map(p => `
+      <div style="
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 20px 24px;
+      ">
+        <div style="font-family:'Bebas Neue';font-size:1.2rem;letter-spacing:1px;margin-bottom:8px;">${p.title}</div>
+        <div style="color:#ccc;font-size:0.95rem;line-height:1.7;">${p.content}</div>
+        <div style="color:#555;font-size:0.75rem;margin-top:12px;">
+          oleh @${p.profiles?.username || '?'} · ${new Date(p.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    console.warn('Gagal load announcements:', e);
+  }
+})();
