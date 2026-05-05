@@ -20,7 +20,6 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; }
 
-    /* AUTH */
     #auth-screen {
       min-height: 100vh;
       display: flex;
@@ -38,13 +37,6 @@
     }
     .auth-logo { font-family: 'Bebas Neue'; font-size: 2rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 8px; }
     .auth-subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
-    .auth-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-    .auth-tab {
-      flex: 1; padding: 10px; background: transparent; border: 1px solid var(--border);
-      color: var(--muted); font-family: 'Rajdhani'; font-weight: 700; font-size: 0.9rem;
-      letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-    }
-    .auth-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 0.8rem; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
     .form-group input {
@@ -59,11 +51,11 @@
       letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s; margin-top: 8px;
     }
     .btn-auth:hover { opacity: 0.85; }
+    .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; }
     .auth-msg { margin-top: 12px; font-size: 0.85rem; text-align: center; min-height: 20px; }
     .auth-msg.error { color: var(--accent); }
     .auth-msg.success { color: var(--green); }
 
-    /* DASHBOARD */
     #dashboard { display: none; }
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
@@ -72,14 +64,9 @@
     }
     .topbar-logo { font-family: 'Bebas Neue'; font-size: 1.4rem; color: var(--accent); letter-spacing: 2px; }
     .topbar-user { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--muted); }
-    .badge {
-      padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;
-      letter-spacing: 1px; text-transform: uppercase;
-    }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
     .badge-owner { background: rgba(255,45,32,0.2); color: var(--accent); border: 1px solid rgba(255,45,32,0.3); }
     .badge-admin { background: rgba(88,101,242,0.2); color: #a78bfa; border: 1px solid rgba(88,101,242,0.3); }
-    .badge-pending { background: rgba(245,158,11,0.2); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
-    .badge-user { background: rgba(255,255,255,0.08); color: var(--muted); border: 1px solid var(--border); }
     .btn-logout {
       padding: 8px 16px; background: transparent; border: 1px solid var(--border);
       border-radius: 8px; color: var(--muted); font-family: 'Rajdhani'; font-weight: 700;
@@ -88,19 +75,12 @@
     .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
 
     .dashboard-content { padding: 32px; max-width: 1100px; margin: 0 auto; }
-    .pending-notice {
-      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
-      border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; color: var(--yellow);
-      font-size: 1rem; line-height: 1.6;
-    }
-
     .section-title {
       font-family: 'Bebas Neue'; font-size: 1.5rem; letter-spacing: 2px;
       color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    /* POST FORM */
     .post-form {
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
       padding: 24px; margin-bottom: 32px;
@@ -120,7 +100,6 @@
     }
     .btn-post:hover { opacity: 0.85; }
 
-    /* POSTS LIST */
     .posts-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
     .post-item {
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
@@ -136,7 +115,6 @@
     }
     .btn-delete:hover { background: rgba(255,45,32,0.1); }
 
-    /* USERS LIST (owner only) */
     .users-list { display: flex; flex-direction: column; gap: 10px; }
     .user-item {
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
@@ -145,31 +123,15 @@
     .user-info { display: flex; align-items: center; gap: 12px; }
     .user-name { font-weight: 700; }
     .user-actions { display: flex; gap: 8px; }
-    .btn-approve {
-      padding: 6px 14px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
-      border-radius: 6px; color: var(--green); font-family: 'Rajdhani'; font-weight: 700;
-      cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
-    }
-    .btn-approve:hover { background: rgba(34,197,94,0.2); }
-    .btn-revoke {
-      padding: 6px 14px; background: transparent; border: 1px solid var(--border);
-      border-radius: 6px; color: var(--muted); font-family: 'Rajdhani'; font-weight: 700;
-      cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
-    }
-    .btn-revoke:hover { border-color: var(--accent); color: var(--accent); }
-
     .empty-state { text-align: center; color: var(--muted); padding: 40px; font-size: 0.95rem; }
   </style>
 </head>
 <body>
 
-
-<!-- AUTH SCREEN -->
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">⬢ SKYWARD</div>
     <div class="auth-subtitle">Admin Panel — Khusus Admin</div>
-
     <div class="form-group">
       <label>Email</label>
       <input type="email" id="login-email" placeholder="email@kamu.com"/>
@@ -178,31 +140,22 @@
       <label>Password</label>
       <input type="password" id="login-password" placeholder="••••••••"/>
     </div>
-    <button class="btn-auth" onclick="handleLogin()">MASUK</button>
+    <button class="btn-auth" id="login-btn" onclick="handleLogin()">MASUK</button>
     <div class="auth-msg" id="login-msg"></div>
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="topbar">
     <div class="topbar-logo">⬢ SKYWARD ADMIN</div>
     <div class="topbar-user">
       <span id="topbar-username">—</span>
-      <span id="topbar-badge" class="badge"></span>
+      <span id="topbar-badge" class="badge badge-owner">OWNER</span>
       <button class="btn-logout" onclick="handleLogout()">KELUAR</button>
     </div>
   </div>
-
   <div class="dashboard-content">
-
-    <!-- Pending notice -->
-    <div class="pending-notice" id="pending-notice" style="display:none">
-      ⏳ Akun kamu sedang menunggu persetujuan dari owner. Kamu akan bisa posting setelah diapprove.
-    </div>
-
-    <!-- POST FORM (admin/owner only) -->
-    <div id="post-section" style="display:none">
+    <div id="post-section">
       <div class="section-title">BUAT PENGUMUMAN</div>
       <div class="post-form">
         <input type="text" id="post-title" placeholder="Judul pengumuman..."/>
@@ -210,21 +163,16 @@
         <button class="btn-post" onclick="handlePost()">⬢ PUBLISH</button>
       </div>
     </div>
-
-    <!-- POSTS LIST -->
     <div class="section-title">PENGUMUMAN</div>
     <div class="posts-list" id="posts-list">
-      <div class="empty-state">Memuat...</div>
+      <div class="empty-state">Belum ada pengumuman.</div>
     </div>
-
-    <!-- USERS (owner only) -->
-    <div id="users-section" style="display:none">
+    <div id="users-section">
       <div class="section-title">KELOLA USER</div>
       <div class="users-list" id="users-list">
-        <div class="empty-state">Memuat...</div>
+        <div class="empty-state">Belum ada user.</div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -235,17 +183,14 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqemFrcmV5dnNsbnR6aGJ1aGt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NTQxODEsImV4cCI6MjA5MzUzMDE4MX0.8fOOaMDUuaGDqE8SRhwq9Pcw2qYQPca2cl_mNMHMClM';
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Daftar email yang boleh login
   const ALLOWED_EMAILS = ['benyeksetia@gmail.com'];
-
   let currentUser = null;
-  let currentProfile = null;
 
   window.handleLogin = async () => {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const msg = document.getElementById('login-msg');
-    const btn = document.querySelector('.btn-auth');
+    const btn = document.getElementById('login-btn');
 
     if (!email || !password) {
       msg.textContent = 'Email dan password wajib diisi!';
@@ -253,7 +198,6 @@
       return;
     }
 
-    // Cek apakah email diizinkan
     if (!ALLOWED_EMAILS.includes(email)) {
       msg.textContent = 'Akses ditolak! Kamu bukan admin.';
       msg.className = 'auth-msg error';
@@ -274,57 +218,28 @@
       return;
     }
 
-    await showDashboard(data.user);
+    tampilkanDashboard(data.user);
   };
 
-  async function showDashboard(user) {
+  function tampilkanDashboard(user) {
+    if (currentUser) return;
     currentUser = user;
-    console.log('showDashboard dipanggil:', user.email);
-
-    let { data: profile, error: fetchError } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    console.log('Profile fetch:', profile, fetchError);
-
-    if (!profile) {
-      console.log('Membuat profile baru...');
-      const { error: insertError } = await sb.from('profiles').insert({
-        id: user.id,
-        username: user.email.split('@')[0],
-        role: 'owner',
-        approved: true
-      });
-      console.log('Insert error:', insertError);
-      
-      const { data: newProfile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      console.log('Profile baru:', newProfile);
-      profile = newProfile;
-    }
-
-    currentProfile = profile;
-    console.log('Menampilkan dashboard...');
 
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = '';
-
-    const role = profile?.role || 'owner';
-    document.getElementById('topbar-username').textContent = '@' + (profile?.username || user.email.split('@')[0]);
-    const badge = document.getElementById('topbar-badge');
-    badge.textContent = role.toUpperCase();
-    badge.className = `badge badge-${role}`;
-
-    document.getElementById('pending-notice').style.display = 'none';
-    document.getElementById('post-section').style.display = '';
-    document.getElementById('users-section').style.display = role === 'owner' ? '' : 'none';
+    document.getElementById('topbar-username').textContent = '@' + user.email.split('@')[0];
 
     loadPosts();
-    if (role === 'owner') loadUsers();
+    loadUsers();
   }
 
   window.handleLogout = async () => {
     await sb.auth.signOut();
     currentUser = null;
-    currentProfile = null;
     document.getElementById('auth-screen').style.display = '';
     document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-btn').disabled = false;
+    document.getElementById('login-btn').textContent = 'MASUK';
   };
 
   window.handlePost = async () => {
@@ -344,19 +259,15 @@
     loadPosts();
   };
 
-  window.handleApprove = async (id, approve) => {
-    await sb.from('profiles').update({
-      approved: approve,
-      role: approve ? 'admin' : 'user'
-    }).eq('id', id);
-    loadUsers();
-  };
-
   async function loadPosts() {
-    const { data, error } = await sb.from('posts').select('*, profiles(username)').order('created_at', { ascending: false });
+    const { data, error } = await sb.from('posts')
+      .select('*, profiles(username)')
+      .order('created_at', { ascending: false });
     const el = document.getElementById('posts-list');
-    if (error || !data?.length) { el.innerHTML = '<div class="empty-state">Belum ada pengumuman.</div>'; return; }
-    const isAdminOrOwner = true;
+    if (error || !data?.length) {
+      el.innerHTML = '<div class="empty-state">Belum ada pengumuman.</div>';
+      return;
+    }
     el.innerHTML = data.map(p => `
       <div class="post-item">
         <div>
@@ -370,31 +281,29 @@
   }
 
   async function loadUsers() {
-    const { data } = await sb.from('profiles').select('*').neq('role', 'owner').order('created_at');
+    const { data } = await sb.from('profiles').select('*').order('created_at');
     const el = document.getElementById('users-list');
-    if (!data?.length) { el.innerHTML = '<div class="empty-state">Belum ada user terdaftar.</div>'; return; }
+    if (!data?.length) {
+      el.innerHTML = '<div class="empty-state">Belum ada user.</div>';
+      return;
+    }
     el.innerHTML = data.map(u => `
       <div class="user-item">
         <div class="user-info">
           <div class="user-name">@${u.username}</div>
-          <span class="badge ${u.approved ? 'badge-admin' : 'badge-pending'}">${u.approved ? 'ADMIN' : 'PENDING'}</span>
-        </div>
-        <div class="user-actions">
-          ${!u.approved ? `<button class="btn-approve" onclick="handleApprove('${u.id}', true)">APPROVE</button>` : ''}
-          ${u.approved ? `<button class="btn-revoke" onclick="handleApprove('${u.id}', false)">REVOKE</button>` : ''}
+          <span class="badge badge-${u.role || 'user'}">${(u.role || 'user').toUpperCase()}</span>
         </div>
       </div>
     `).join('');
   }
 
-  // Cek session yang sudah ada
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user && !currentUser) {
-      await showDashboard(session.user);
+  // Cek session yang sudah ada saat halaman dibuka
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      tampilkanDashboard(session.user);
     }
     if (event === 'SIGNED_OUT') {
       currentUser = null;
-      currentProfile = null;
       document.getElementById('auth-screen').style.display = '';
       document.getElementById('dashboard').style.display = 'none';
     }
