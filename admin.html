@@ -279,22 +279,28 @@
 
   async function showDashboard(user) {
     currentUser = user;
+    console.log('showDashboard dipanggil:', user.email);
 
-    // Ambil atau buat profile otomatis
-    let { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    let { data: profile, error: fetchError } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    console.log('Profile fetch:', profile, fetchError);
 
     if (!profile) {
-      await sb.from('profiles').insert({
+      console.log('Membuat profile baru...');
+      const { error: insertError } = await sb.from('profiles').insert({
         id: user.id,
         username: user.email.split('@')[0],
         role: 'owner',
         approved: true
       });
+      console.log('Insert error:', insertError);
+      
       const { data: newProfile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      console.log('Profile baru:', newProfile);
       profile = newProfile;
     }
 
     currentProfile = profile;
+    console.log('Menampilkan dashboard...');
 
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = '';
