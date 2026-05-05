@@ -674,3 +674,16 @@ footer p {
   nav { padding: 1rem; }
   .nav-links { display: none; }
 }
+
+.btn-nav-admin {
+  background: var(--accent);
+  color: white !important;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: opacity 0.2s;
+}
+.btn-nav-admin:hover {
+  opacity: 0.85;
+}
