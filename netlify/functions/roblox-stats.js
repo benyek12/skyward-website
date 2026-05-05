@@ -3,32 +3,35 @@ const https = require('https');
 exports.handler = async (event) => {
   const { id } = event.queryStringParameters;
 
-  // Coba pakai endpoint berbeda
-  const options = {
-    hostname: 'api.roblox.com',
-    path: `/universes/get-universe-contains-place?placeId=${id}`,
-    method: 'GET',
-    headers: {
-      'User-Agent': 'Roblox/WinInet',
-      'Accept': 'application/json',
-    }
-  };
-
   return new Promise((resolve) => {
-    https.get(options, (res) => {
+    const options = {
+      hostname: 'games.roblox.com',
+      path: `/v1/games?universeIds=${id}`,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Accept': 'application/json',
+        'Cookie': ''
+      }
+    };
+
+    const req = https.request(options, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
-        console.log('Status:', res.statusCode);
-        console.log('Body:', body);
+        console.log('Status:', res.statusCode, 'Body:', body);
         resolve({
           statusCode: 200,
           headers: { 'Access-Control-Allow-Origin': '*' },
           body: body
         });
       });
-    }).on('error', (err) => {
+    });
+
+    req.on('error', (err) => {
       resolve({ statusCode: 500, body: JSON.stringify({ error: err.message }) });
     });
+
+    req.end();
   });
 };
