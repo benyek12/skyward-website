@@ -3,16 +3,14 @@ const https = require('https');
 exports.handler = async (event) => {
   const { id } = event.queryStringParameters;
 
+  // Coba pakai endpoint berbeda
   const options = {
-    hostname: 'games.roblox.com',
-    path: `/v1/games?universeIds=${id}`,
+    hostname: 'api.roblox.com',
+    path: `/universes/get-universe-contains-place?placeId=${id}`,
     method: 'GET',
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent': 'Roblox/WinInet',
       'Accept': 'application/json',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Referer': 'https://www.roblox.com/',
-      'Origin': 'https://www.roblox.com'
     }
   };
 
@@ -21,6 +19,8 @@ exports.handler = async (event) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
+        console.log('Status:', res.statusCode);
+        console.log('Body:', body);
         resolve({
           statusCode: 200,
           headers: { 'Access-Control-Allow-Origin': '*' },
@@ -28,7 +28,7 @@ exports.handler = async (event) => {
         });
       });
     }).on('error', (err) => {
-      resolve({ statusCode: 500, body: 'Error: ' + err.message });
+      resolve({ statusCode: 500, body: JSON.stringify({ error: err.message }) });
     });
   });
 };
