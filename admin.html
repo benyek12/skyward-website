@@ -11,7 +11,6 @@
       --card: #111118;
       --border: rgba(255,255,255,0.08);
       --accent: #FF2D20;
-      --accent2: #5865F2;
       --text: #f0f0f0;
       --muted: #888;
       --green: #22c55e;
@@ -56,7 +55,8 @@
     .auth-msg.error { color: var(--accent); }
     .auth-msg.success { color: var(--green); }
 
-    #dashboard { display: none; }
+    #dashboard { display: none; min-height: 100vh; }
+
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 32px; border-bottom: 1px solid var(--border);
@@ -67,6 +67,7 @@
     .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
     .badge-owner { background: rgba(255,45,32,0.2); color: var(--accent); border: 1px solid rgba(255,45,32,0.3); }
     .badge-admin { background: rgba(88,101,242,0.2); color: #a78bfa; border: 1px solid rgba(88,101,242,0.3); }
+    .badge-user { background: rgba(255,255,255,0.08); color: var(--muted); border: 1px solid var(--border); }
     .btn-logout {
       padding: 8px 16px; background: transparent; border: 1px solid var(--border);
       border-radius: 8px; color: var(--muted); font-family: 'Rajdhani'; font-weight: 700;
@@ -75,6 +76,7 @@
     .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
 
     .dashboard-content { padding: 32px; max-width: 1100px; margin: 0 auto; }
+
     .section-title {
       font-family: 'Bebas Neue'; font-size: 1.5rem; letter-spacing: 2px;
       color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
@@ -105,7 +107,7 @@
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
       padding: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
     }
-    .post-item-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
+    .post-item-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; color: var(--text); }
     .post-item-content { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
     .post-item-meta { font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
     .btn-delete {
@@ -115,19 +117,19 @@
     }
     .btn-delete:hover { background: rgba(255,45,32,0.1); }
 
-    .users-list { display: flex; flex-direction: column; gap: 10px; }
+    .users-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
     .user-item {
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
       padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
     .user-info { display: flex; align-items: center; gap: 12px; }
-    .user-name { font-weight: 700; }
-    .user-actions { display: flex; gap: 8px; }
+    .user-name { font-weight: 700; color: var(--text); }
     .empty-state { text-align: center; color: var(--muted); padding: 40px; font-size: 0.95rem; }
   </style>
 </head>
 <body>
 
+<!-- AUTH SCREEN -->
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">⬢ SKYWARD</div>
@@ -145,6 +147,7 @@
   </div>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="topbar">
     <div class="topbar-logo">⬢ SKYWARD ADMIN</div>
@@ -154,24 +157,23 @@
       <button class="btn-logout" onclick="handleLogout()">KELUAR</button>
     </div>
   </div>
+
   <div class="dashboard-content">
-    <div id="post-section">
-      <div class="section-title">BUAT PENGUMUMAN</div>
-      <div class="post-form">
-        <input type="text" id="post-title" placeholder="Judul pengumuman..."/>
-        <textarea id="post-content" placeholder="Isi pengumuman..."></textarea>
-        <button class="btn-post" onclick="handlePost()">⬢ PUBLISH</button>
-      </div>
+    <div class="section-title">BUAT PENGUMUMAN</div>
+    <div class="post-form">
+      <input type="text" id="post-title" placeholder="Judul pengumuman..."/>
+      <textarea id="post-content" placeholder="Isi pengumuman..."></textarea>
+      <button class="btn-post" onclick="handlePost()">⬢ PUBLISH</button>
     </div>
+
     <div class="section-title">PENGUMUMAN</div>
     <div class="posts-list" id="posts-list">
-      <div class="empty-state">Belum ada pengumuman.</div>
+      <div class="empty-state">Memuat...</div>
     </div>
-    <div id="users-section">
-      <div class="section-title">KELOLA USER</div>
-      <div class="users-list" id="users-list">
-        <div class="empty-state">Belum ada user.</div>
-      </div>
+
+    <div class="section-title">KELOLA USER</div>
+    <div class="users-list" id="users-list">
+      <div class="empty-state">Memuat...</div>
     </div>
   </div>
 </div>
@@ -185,6 +187,7 @@
 
   const ALLOWED_EMAILS = ['benyeksetia@gmail.com'];
   let currentUser = null;
+  let sudahLogin = false;
 
   window.handleLogin = async () => {
     const email = document.getElementById('login-email').value.trim();
@@ -197,7 +200,6 @@
       msg.className = 'auth-msg error';
       return;
     }
-
     if (!ALLOWED_EMAILS.includes(email)) {
       msg.textContent = 'Akses ditolak! Kamu bukan admin.';
       msg.className = 'auth-msg error';
@@ -218,15 +220,16 @@
       return;
     }
 
-    tampilkanDashboard(data.user);
+    tampilDashboard(data.user);
   };
 
-  function tampilkanDashboard(user) {
-    if (currentUser) return;
+  function tampilDashboard(user) {
+    if (sudahLogin) return;
+    sudahLogin = true;
     currentUser = user;
 
     document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = '';
+    document.getElementById('dashboard').style.display = 'block';
     document.getElementById('topbar-username').textContent = '@' + user.email.split('@')[0];
 
     loadPosts();
@@ -236,6 +239,7 @@
   window.handleLogout = async () => {
     await sb.auth.signOut();
     currentUser = null;
+    sudahLogin = false;
     document.getElementById('auth-screen').style.display = '';
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('login-btn').disabled = false;
@@ -270,7 +274,7 @@
     }
     el.innerHTML = data.map(p => `
       <div class="post-item">
-        <div>
+        <div style="flex:1;">
           <div class="post-item-title">${p.title}</div>
           <div class="post-item-content">${p.content}</div>
           <div class="post-item-meta">oleh @${p.profiles?.username || '?'} · ${new Date(p.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</div>
@@ -297,13 +301,13 @@
     `).join('');
   }
 
-  // Cek session yang sudah ada saat halaman dibuka
   sb.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
-      tampilkanDashboard(session.user);
+      tampilDashboard(session.user);
     }
     if (event === 'SIGNED_OUT') {
       currentUser = null;
+      sudahLogin = false;
       document.getElementById('auth-screen').style.display = '';
       document.getElementById('dashboard').style.display = 'none';
     }
